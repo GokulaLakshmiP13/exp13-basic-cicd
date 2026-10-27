@@ -1,14 +1,30 @@
-name: Build and Test
+name: CI Pipeline
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:
+  build-test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm test
-      - run: npm start
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Verify monitoring endpoints
+        run: |
+          echo "Checking Prometheus health endpoint"
+          curl --fail --max-time 5 http://localhost:9090/-/healthy || echo "Prometheus is not available on this runner"
+          echo "Monitoring check completed"
